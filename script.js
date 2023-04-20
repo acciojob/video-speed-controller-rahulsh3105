@@ -1,52 +1,44 @@
-  const video = document.querySelector('.flex');
-  const speed = document.querySelector('.speed');
-  const speedBar = document.querySelector('.speed-bar');
+const player = document.querySelector(".player");
+const video = player.querySelector(".viewer");
+const progress = player.querySelector(".progress");
+const progressBar = player.querySelector(".progress__filled");
+const toggle = player.querySelector(".toggle");
+const skipButtons = player.querySelectorAll("[data-skip]");
+const ranges = player.querySelectorAll(".player__slider");
 
-  function handlePlay() {
-    const playButton = document.querySelector('.play-button');
-    if (video.paused) {
-      video.play();
-      playButton.textContent = '❚❚';
-    } else {
-      video.pause();
-      playButton.textContent = '►';
-    }
+toggle.addEventListener("click", togglePlay);
+
+video.addEventListener("timeupdate", handlerProgress);
+
+for (let skip of skipButtons) {
+  skip.addEventListener("click", forwardOrBackward);
+}
+
+for (let range of ranges) {
+  range.addEventListener("change", handleRangeUpdate);
+}
+
+function togglePlay() {
+  if (video.paused) {
+    video.play();
+    toggle.innerText = "❚ ❚";
+  } else {
+    video.pause();
+    toggle.innerText = "►";
   }
+}
 
-  function handleSpeedUpdate() {
-    video.playbackRate = parseFloat(this.value);
-    speedBar.textContent = `${video.playbackRate.toFixed(2)}×`;
-  }
+function handlerProgress() {
+  const currentProgress = (video.currentTime / video.duration) * 100;
+  progressBar.style.flexBasis = `${currentProgress}%`;
+}
 
-  function handleSkip() {
-    video.currentTime += parseFloat(this.dataset.skip);
-  }
+function forwardOrBackward(event) {
+  let element = event.target;
+  video.currentTime += parseFloat(element.attributes["data-skip"].value);
+}
 
-  function handleProgress() {
-    const percent = (video.currentTime / video.duration) * 100;
-    const progressBar = document.querySelector('.progress-filled');
-    progressBar.style.flexBasis = `${percent}%`;
-  }
-
-  function scrub(e) {
-    const scrubTime = (e.offsetX / speed.offsetWidth) * video.duration;
-    video.currentTime = scrubTime;
-  }
-
-  video.addEventListener('click', handlePlay);
-  video.addEventListener('timeupdate', handleProgress);
-
-  const playButton = document.querySelector('.play-button');
-  playButton.addEventListener('click', handlePlay);
-
-  const skipButtons = document.querySelectorAll('[data-skip]');
-  skipButtons.forEach(button => button.addEventListener('click', handleSkip));
-
-  const playbackSpeed = document.querySelector('.playback-speed');
-  playbackSpeed.addEventListener('input', handleSpeedUpdate);
-
-  let isScrubbing = false;
-  speed.addEventListener('mousedown', () => isScrubbing = true);
-  speed.addEventListener('mousemove', (e) => isScrubbing && scrub(e));
-  speed.addEventListener('mouseup', () => isScrubbing = false);
-  speed.addEventListener('mouseleave', () => isScrubbing = false);
+function handleRangeUpdate(event) {
+  let element = event.target;
+  video[element.name] = element.value;
+}
